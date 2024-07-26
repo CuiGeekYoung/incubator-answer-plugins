@@ -21,11 +21,13 @@ package basic
 
 import (
 	"context"
+	"crypto/tls"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"github.com/apache/incubator-answer-plugins/util"
 	"io"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -133,6 +135,13 @@ func (g *Connector) ConnectorReceiver(ctx *plugin.GinContext, receiverURL string
 		},
 		RedirectURL: receiverURL,
 	}
+	// 创建一个自定义的 HTTP 客户端
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true, // 忽略证书验证
+		},
+	}
+
 	token, err := oauth2Config.Exchange(context.Background(), code)
 	if err != nil {
 		return userInfo, fmt.Errorf("code exchange failed: %s", err.Error())
@@ -142,6 +151,8 @@ func (g *Connector) ConnectorReceiver(ctx *plugin.GinContext, receiverURL string
 	client := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token.AccessToken},
 	))
+
+	client.Transport = transport // 使用自定义 Transport
 	client.Timeout = 15 * time.Second
 
 	response, err := client.Get(g.Config.UserJsonUrl)
