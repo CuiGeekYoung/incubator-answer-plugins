@@ -1,4 +1,4 @@
-module github.com/apache/incubator-answer-plugins/connector-basic
+module github.com/CuiGeekYoung/incubator-answer-plugins/connector-basic
 
 go 1.19
 
